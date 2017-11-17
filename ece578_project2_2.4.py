@@ -36,6 +36,7 @@ class Cone:
         self.cones = []
         rows = np.where(self.ASdata[:,0] == AS)[0]
         rowminus = 0
+        count = 0
         for rownum in rows:
             row = self.ASdata[rownum-rowminus]
             self.ASdata = np.delete( self.ASdata, rownum-rowminus, axis=0 )
@@ -45,22 +46,30 @@ class Cone:
                 self.add_peer(row[1])
             else:
                 self.add_subcone( row[1] )
-
+            count+=1
         del self.othercones
         del self.ASdata
 
     
 
     def add_subcone(self, AS):
+        print "{} is looking for {}".format( self.AS, AS),
         subcone = None
         for cone in self.othercones:
+            
             subcone = cone.hasSubcone(AS)
-            if subcone:
+
+            if subcone is not None:
+                print " found it",
                 break
 
-        if subcone:
-            self.cones.append(subcone) 
+
+        if subcone is not None:
+            self.cones.append(subcone)
+            print " We already built it"
+
         else:
+            print " Building it"
             self.cones.append( Cone(AS, self.ASdata, self.othercones) )
 
     def add_peer(self, peer):
@@ -68,6 +77,8 @@ class Cone:
     
 
     def hasSubcone( self, AS ):
+        if AS == self.AS:
+            return self
         for cone in self.cones:
             if cone.AS == AS:
                 return cone
@@ -77,7 +88,21 @@ class Cone:
                     continue
                 else:
                     return resp
-    
+
+    def hasPeer(self, AS):
+        if AS == self.AS:
+            return self
+
+        for peer in self.peers:
+            if peer.AS == AS:
+                return peer
+            else:
+                resp = peer.hasPeer( AS )
+                if resp is None:
+                    continue
+                else:
+                    return resp
+
 
     def __len__(self):
 
@@ -109,7 +134,14 @@ def get_unique_providers(ASdata):
     return providers[np.unique(providers[:,0], return_index=True)[1]]
 
 
+def hasCone(AS, allcones):
+    subcn = None
+    for cn in allcones:
+        subcn = cn.hasSubcone(AS)
 
+        if subcn:
+            break
+    return subcn
 
 def get_unprocessed(uprov, allcones):
 
@@ -144,6 +176,16 @@ def get_all_cones(uprov_AS, ASdata, to=1, allcones=None):
     
         yield allcones 
             
+def get_unproc_degrank(unproc, data):
+    deg = np.zeros( (unproc.shape[0],2), dtype=int )
+    row = 0
+    for AS in unproc:
+        deg[row, 0] = AS
+        deg[row, 1]=data[ np.where(data[:,0] == AS) ].shape[0]
+        row+=1
+    deg = deg[deg[:,1].argsort()]
+    return deg
+
 
 def get_slow_cones( AS, cones ):
 
@@ -162,6 +204,26 @@ def get_slow_cones( AS, cones ):
             
         
 
+
+def reduce_data( data, allcones ):
+    ASdata = data[:]
+    count = 0
+    for cone in allcones:
+        rownum = 0
+        remove = False
+        for row in ASdata:
+            if cone.hasSubcone( row[0] ):
+                remove = True
+                AS=row[0]
+                break
+            rownum+=1
+        if remove:
+            print 100*float(count)/len(allcones), ASdata.shape, np.where(ASdata[:,0] == AS)[0].shape
+            ASdata = np.delete( ASdata, np.where(ASdata[:,0] == AS), axis=0 )
+        count+=1
+
+
+    return ASdata
 
 
 
