@@ -25,7 +25,11 @@ class Timeout():
         raise Timeout.Timeout()
 
 class Cone:
-
+    """Cone Class
+        THis is where the meat of the Cone finding allgorithme 
+        is done. The Cone searches the the AS data to see
+        which AS's belong in its subcone. 
+    """
     def __init__(self, AS, ASdata, othercones=None):
         if othercones == None:
             othercones = []
@@ -53,9 +57,20 @@ class Cone:
     
 
     def add_subcone(self, AS):
+        """add_subcone
+            This is where the recursions happens. 
+            To make sure we are not doubling up we 
+            get rid of any AS's that are already a
+            subcone of self. We then look in other cones
+            to see if we have already built the Customer Cone
+            of the potential subcone. 
+        """
+
         print "{} is looking for {}".format( self.AS, AS),
 
+        # We have it alread
         if self.hasSubcone(AS):
+            print " Ignoring"
             return None
         
         subcone = None
@@ -66,12 +81,12 @@ class Cone:
             if subcone is not None:
                 print " found it",
                 break
-
-
+        #it was built previously
         if subcone is not None:
             self.cones.append(subcone)
             print " We already built it"
 
+        #build it from scratch
         else:
             print " Building it"
             self.cones.append( Cone(AS, self.ASdata, self.othercones) )
@@ -79,8 +94,11 @@ class Cone:
     def add_peer(self, peer):
         self.peers.append(peer)
     
-
+    
     def hasSubcone( self, AS ):
+        """Determine if a cone is within the set of subcones 
+        owned by this Cone recursively.
+        If so return the cone.  """
         if AS == self.AS:
             return self
         for cone in self.cones:
@@ -206,7 +224,12 @@ def get_slow_cones( AS, cones ):
                 return resp
 
             
-        
+
+def do_unproc( unique_providers, providers, allcones):
+    unproc = get_unprocessed(unique_providers, allcones)
+    unproc_degrank = get_unproc_degrank(unproc, providers)
+    print unproc_degrank[0]
+    return unproc_degrank
 
 
 def reduce_data( data, allcones ):
