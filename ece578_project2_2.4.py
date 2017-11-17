@@ -54,6 +54,10 @@ class Cone:
 
     def add_subcone(self, AS):
         print "{} is looking for {}".format( self.AS, AS),
+
+        if self.hasSubcone(AS)
+            return None
+        
         subcone = None
         for cone in self.othercones:
             
