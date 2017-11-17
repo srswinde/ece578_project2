@@ -46,7 +46,6 @@ class Cone:
                 self.add_peer(row[1])
             else:
                 self.add_subcone( row[1] )
-        subcone = None
             count+=1
         del self.othercones
         del self.ASdata
