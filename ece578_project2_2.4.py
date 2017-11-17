@@ -59,7 +59,6 @@ class Cone:
                 break
 
         if subcone:
-	    print("got one!")
             self.cones.append(subcone) 
         else:
             self.cones.append( Cone(AS, self.ASdata, self.othercones) )
@@ -111,23 +110,39 @@ def get_unique_providers(ASdata):
 
 
 
+
+def get_unprocessed(uprov, allcones):
+
+    unproc = []
+    sorted_uprov = uprov[uprov[:,1].argsort()][:,0]
+    allcones_AS = [cn.AS for cn in allcones]
+    for AS in sorted_uprov:
+        if AS not in allcones_AS:
+            unproc.append(AS)
+
+
+    return np.array(unproc)
+
+
 def get_all_cones(uprov_AS, ASdata, to=1, allcones=None):
     if allcones == None:
         allcones = []
     unproc =[]
     count = 0
+    now = time.time()
     for AS in uprov_AS:
         try:
             with Timeout(to):
                 allcones.append(Cone(AS, ASdata, allcones))
+                print "processed {} number {} at time {}".format(AS, count, (time.time()-now)/60.0)
         except Timeout.Timeout:
-            print "Could not process {} {}".format(count, AS)
-            unproc.append(AS)
+            print "Could not process {} {} {}".format(count, AS, (time.time()-now)/60.0)
+            
         count+=1
 
-    unproc = np.array(unproc)
+        unproc = np.array(unproc)
     
-    return allcones, unproc
+        yield allcones 
             
 
 def get_slow_cones( AS, cones ):
