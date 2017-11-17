@@ -46,6 +46,7 @@ class Cone:
                 self.add_peer(row[1])
             else:
                 self.add_subcone( row[1] )
+        subcone = None
             count+=1
         del self.othercones
         del self.ASdata
@@ -55,7 +56,7 @@ class Cone:
     def add_subcone(self, AS):
         print "{} is looking for {}".format( self.AS, AS),
 
-        if self.hasSubcone(AS)
+        if self.hasSubcone(AS):
             return None
         
         subcone = None
